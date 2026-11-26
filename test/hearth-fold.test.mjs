@@ -81,6 +81,23 @@ test("placesOf: residents grouped by the place they stand at; one with no place 
   assert.equal(placesOf(HOUSE, { walkers: "x" }), null);
 });
 
+test("placesOf (#4933): a walker's `toward` is a POINT; the destination's name is mark_id; a walker with no named destination is 'on the way', never '[object Object]' and never 'not on the roll'", () => {
+  const w = { walkers: [
+    { handle: "b1", moving: true, toward: { x: 3637.5, y: 4938.5 }, mark_id: "aurex/the-first-of-the-month-literary-club" },
+    { handle: "b2", moving: false, mark_id: "leo-hart/the-porch" },
+    { handle: "b3", moving: true, toward: { x: 10, y: 20 } },
+    { handle: "b4", moving: true, toward: "leo-hart/the-loft" },
+  ] };
+  const places = placesOf(["b1", "b2", "b3", "b4", "b5"], w);
+  assert.equal(JSON.stringify(places).includes("[object Object]"), false, "no point is ever printed");
+  const of = (h) => places.find((p) => p.who.includes(h));
+  assert.deepEqual([of("b1").place, of("b1").moving], ["the first of the month literary club", true]);
+  assert.deepEqual([of("b2").place, of("b2").moving], ["the porch", false]);
+  assert.deepEqual([of("b3").place, of("b3").moving], [null, true], "a point with no mark_id: moving, no name");
+  assert.deepEqual([of("b4").place, of("b4").moving], ["the loft", true], "an older roll's string toward is still its name");
+  assert.notEqual(of("b3"), of("b5"), "a nameless walker is not grouped with the residents not on the roll");
+});
+
 test("chartOf: a bar per resident, scaled to the largest; a resident whose doorstep did not answer has NO number, not a zero; none answered is null", () => {
   const ds = { a1: { stamps: { assets: 50 } }, a2: { stamps: { assets: 100 } }, a3: null };
   const c = chartOf(["a1", "a2", "a3"], ds);

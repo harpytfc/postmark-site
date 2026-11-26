@@ -97,9 +97,12 @@ export function placesOf(handles, walkers) {
   const by = new Map();
   for (const h of handles) {
     const w = walkers.walkers.find((x) => x?.handle === h);
-    const place = w ? (w.moving && w.toward ? leaf(w.toward) : w.mark_id ? leaf(w.mark_id) : null) : null;
+    // while a resident walks, the roll's `toward` is the destination's POINT ({ x, y }); the destination's name is the walk's `to`, which the roll
+    // carries as `mark_id` (as replay-scrub builds it). A string `toward` (an older roll) is still taken as the name. Never leaf() a point (#4933).
     const moving = !!(w && w.moving && w.toward);
-    const k = place ?? "";
+    const dest = moving ? (typeof w.toward === "string" ? w.toward : w.mark_id) : w?.mark_id;
+    const place = dest ? leaf(dest) : null;
+    const k = place ?? (moving ? "\u0000on the way" : "");
     if (!by.has(k)) by.set(k, { place, moving, who: [] });
     by.get(k).who.push(h);
   }

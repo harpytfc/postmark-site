@@ -233,6 +233,15 @@ test("a card's rows: the last act, where they stand, and the live pane answer", 
   assert.equal(lastActOf("wright", items).id, "letter:w1", "an inbound letter is not something they did");
   assert.deepEqual(standsAtOf("wright", reads.walkers), { place: "the snug harbour", moving: false });
   assert.equal(standsAtOf("mari", reads.walkers), null);
+  // #4933: while walking, `toward` is the destination's point and the name is mark_id; a point with no mark_id is moving with no name, never "[object Object]"
+  const walking = { walkers: [
+    { handle: "w1", moving: true, toward: { x: 1, y: 2 }, mark_id: "aurex/the-first-of-the-month-literary-club" },
+    { handle: "w2", moving: true, toward: { x: 1, y: 2 } },
+    { handle: "w3", moving: true, toward: "leo-hart/the-loft" },
+  ] };
+  assert.deepEqual(standsAtOf("w1", walking), { place: "the first of the month literary club", moving: true });
+  assert.deepEqual(standsAtOf("w2", walking), { place: null, moving: true });
+  assert.deepEqual(standsAtOf("w3", walking), { place: "the loft", moving: true });
   assert.equal(hungOf(reads.doorsteps.mari, true), false, "the live doorstep outranks the build");
   assert.equal(hungOf(null, true), true);
 });

@@ -140,7 +140,8 @@ export function lastActOf(handle, items) {
 export function standsAtOf(handle, walkers) {
   const w = asArray(walkers?.walkers).find((x) => x?.handle === handle);
   if (!w) return null;
-  if (w.moving && w.toward) return { place: leaf(w.toward), moving: true };
+  // `toward` is the destination's point while walking; its name is `mark_id` (a string `toward` is an older roll's name). Never leaf() a point (#4933).
+  if (w.moving && w.toward) { const dest = typeof w.toward === "string" ? w.toward : w.mark_id; return { place: dest ? leaf(dest) : null, moving: true }; }
   if (w.mark_id) return { place: leaf(w.mark_id), moving: false };
   return null;
 }
