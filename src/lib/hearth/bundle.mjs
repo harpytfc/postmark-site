@@ -129,7 +129,8 @@ export function tiesOf(bundle, handles = []) {
       letters: num(r.letters) ?? p?.letters ?? 0, out: p?.out ?? null, in: p?.in ?? null,
       stamps: num(r.stamps_between),
       latest: time(r.last_at) ?? p?.latest ?? null,
-      milestones: [...new Set(asArray(r.milestones).map((m) => str(m?.rung ?? m?.name ?? m)).filter(Boolean))].slice(0, 3),
+      // a milestone is { by, rung, day } (or a plain string); one with no rung or name is left out, never folded to "[object Object]" (#4747)
+      milestones: [...new Set(asArray(r.milestones).map((m) => (typeof m === "string" ? m : str(m?.rung ?? m?.name ?? ""))).filter(Boolean))].slice(0, 3),
       quoteOut: p?.quoteOut ?? null, quoteIn: p?.quoteIn ?? null,
     });
   }

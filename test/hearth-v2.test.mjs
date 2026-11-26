@@ -155,6 +155,11 @@ test("ties: one row per correspondent, most letters first, joined to the residen
   assert.deepEqual([t.rows[1].out, t.rows[1].in], [null, null], "no pair: no direction is made up");
   assert.deepEqual([t.rows[2].quoteOut, t.rows[2].quoteIn], [null, null], "a pair with no letter delivered either way has no quote");
   assert.deepEqual(tiesOf({ ...BUNDLE, parts: { closer: part("household", "closer", { rows: [] }) } }, HOUSE).rows, [], "an answered closer with no rows is an honest none");
+  // #4747: the office sends a milestone as { by, rung, day }; one with no rung or name is left out, never "[object Object]"; strings and named ones stay
+  const ms = tiesOf({ ...BUNDLE, parts: { ...BUNDLE.parts, closer: part("household", "closer", { rows: [{ with: "hare", letters: 7,
+    milestones: [{ by: "fox", rung: null, day: null }, { rung: "five-deep" }, "ten-deep", { name: "first letter" }] }] }) } }, HOUSE);
+  assert.deepEqual(ms.rows[0].milestones, ["five-deep", "ten-deep", "first letter"], "Leo's acceptance case: the empty milestone goes, the others keep their order");
+  assert.equal(JSON.stringify(ms).includes("[object Object]"), false);
   // the strongest pair wins whichever order the office lists them in (until 2026-11-13: the in-house pair from either side, on the draft shape)
   const flipped = { ...BUNDLE, parts: { ...BUNDLE.parts, pairs: [...BUNDLE.parts.pairs].reverse() } };
   assert.equal(tiesOf(flipped, HOUSE).rows[0].handle, "fox");
